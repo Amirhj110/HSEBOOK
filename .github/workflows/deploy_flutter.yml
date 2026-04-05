@@ -1,0 +1,41 @@
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.19.0'
+
+      - name: Install dependencies
+        run: |
+          cd hse_frontend
+          flutter pub get
+
+      - name: Build Flutter web app
+        run: |
+          cd hse_frontend
+          flutter build web --release --base-href /HSEBOOK/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: hse_frontend/build/web
+          destination_dir: .
+          enable_jekyll: false
