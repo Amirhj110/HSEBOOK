@@ -1,0 +1,36 @@
+name: Deploy Flutter Web
+on:
+  push:
+    branches:
+      - master  # Change to 'main' if your branch name is main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # 1. Install dependencies from the subfolder
+      - name: Install Dependencies
+        run: flutter pub get
+        working-directory: hse_frontend
+
+      # 2. Build the web app FROM the subfolder (Crucial Fix)
+      - name: Build Web
+        run: flutter build web --release --base-href /HSEBOOK/
+        working-directory: hse_frontend
+
+      # 3. Deploy the build folder which is now in hse_frontend/build/web
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./hse_frontend/build/web
