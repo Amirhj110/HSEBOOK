@@ -23,14 +23,12 @@ jobs:
           flutter-version: '3.41.6'
 
       - name: Install dependencies
-        run: |
-          cd hse_frontend
-          flutter pub get
+        working-directory: hse_frontend
+        run: flutter pub get
 
       - name: Build Flutter web app
-        run: |
-          cd hse_frontend
-          flutter build web --release --base-href /HSEBOOK/ --target lib/main.dart
+        working-directory: hse_frontend
+        run: flutter build web --release --base-href /HSEBOOK/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
