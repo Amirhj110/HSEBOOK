@@ -289,7 +289,8 @@ class _SafetyObservationFormState extends State<SafetyObservationForm> {
                                 child: Image.network(
                                   _selectedImages[index].path,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => const Center(
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Center(
                                     child: Icon(
                                       Icons.image,
                                       color: Colors.grey,

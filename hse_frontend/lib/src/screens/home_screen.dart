@@ -124,9 +124,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onSubmit: (data) async {
           Navigator.pop(ctx);
           try {
-            await ref
-                .read(postProvider.notifier)
-                .createPost(
+            await ref.read(postProvider.notifier).createPost(
                   token: token,
                   content: data['content'] as String,
                   projectId: projectId,
@@ -379,7 +377,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Image.network(
                       settings!.logoUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Icon(
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.business,
                         size: 32,
                         color: Colors.red.shade700,
@@ -609,8 +607,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   child: SizedBox(
                                     width:
                                         MediaQuery.of(context).size.width * 0.8,
-                                    height:
-                                        MediaQuery.of(context).size.height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.7,
                                     child: ChatScreen(
                                       recipient: member,

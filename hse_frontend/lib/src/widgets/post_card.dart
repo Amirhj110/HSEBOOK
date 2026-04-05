@@ -284,7 +284,8 @@ class _PostCardState extends ConsumerState<PostCard> {
                       child: Image.network(
                         imgUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Center(
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
                           child: Icon(Icons.broken_image, size: 50),
                         ),
                       ),
