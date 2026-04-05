@@ -152,9 +152,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: _isLoading
-                  ? null
-                  : () => _saveProfile(projectState.token),
+              onPressed:
+                  _isLoading ? null : () => _saveProfile(projectState.token),
               child: _isLoading
                   ? const SizedBox(
                       width: 20,
@@ -190,13 +189,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           backgroundColor: Colors.red.shade700,
                           backgroundImage: _imageBytes != null
                               ? MemoryImage(_imageBytes!)
+                                  as ImageProvider<Object>
                               : (!_imageError &&
-                                    user.profilePicture != null &&
-                                    user.profilePicture!.isNotEmpty)
-                              ? NetworkImage(user.profilePicture!)
-                              : null,
-                          child:
-                              (_imageBytes == null &&
+                                      user.profilePicture != null &&
+                                      user.profilePicture!.isNotEmpty)
+                                  ? NetworkImage(user.profilePicture!)
+                                      as ImageProvider<Object>
+                                  : null,
+                          child: (_imageBytes == null &&
                                   (_imageError ||
                                       user.profilePicture == null ||
                                       user.profilePicture!.isEmpty))
@@ -410,9 +410,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (!mounted) return;
 
       // Refresh profile from state
-      await ref
-          .read(projectProvider.notifier)
-          .updateUserProfile(
+      await ref.read(projectProvider.notifier).updateUserProfile(
             token,
             firstName: _firstNameCtrl.text.trim(),
             lastName: _lastNameCtrl.text.trim(),

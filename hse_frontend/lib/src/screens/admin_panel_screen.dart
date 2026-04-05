@@ -71,12 +71,13 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
 
       // Populate controllers
       _appNameController.text = _settings?.appName ?? 'HSEBOOK';
-      _projectNameController.text = ref.read(projectProvider).project?.name ?? '';
+      _projectNameController.text =
+          ref.read(projectProvider).project?.name ?? '';
       _projectAreaController.text = _settings?.projectArea ?? '';
       _projectDurationController.text = _settings?.projectDuration ?? '';
       _manHoursController.text = (_settings?.manHours ?? 0).toString();
-      _equipmentCountController.text = (_settings?.equipmentCount ?? 0)
-          .toString();
+      _equipmentCountController.text =
+          (_settings?.equipmentCount ?? 0).toString();
     } catch (e) {
       setState(() => _isLoadingSettings = false);
       if (mounted) {
@@ -351,23 +352,25 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
                                   ),
                                 )
                               : _settings?.logoUrl != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    _settings!.logoUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => Icon(
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        _settings!.logoUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                          Icons.business,
+                                          size: 48,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
                                       Icons.business,
                                       size: 48,
                                       color: Colors.grey.shade400,
                                     ),
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.business,
-                                  size: 48,
-                                  color: Colors.grey.shade400,
-                                ),
                         ),
                         const SizedBox(height: 8),
                         TextButton.icon(
