@@ -583,6 +583,50 @@ class ProjectSettingsView(APIView):
         return Response(serializer.data)
 
 
+class ProjectColorsUpdateView(APIView):
+    """Update project theme colors."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        user = get_authenticated_user(request)
+        project = get_user_project(user)
+        if not project:
+            return Response({'error': 'No project associated'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not (user.is_project_admin or user.role == User.Role.ADMIN):
+            return Response({'error': 'Only admins can change colors'}, status=status.HTTP_403_FORBIDDEN)
+        
+        settings, _ = ProjectSettings.objects.get_or_create(project=project)
+        
+        # Update theme colors if provided
+        primary_color = request.data.get('primary_color')
+        secondary_color = request.data.get('secondary_color')
+        
+        if primary_color or secondary_color:
+            # Store colors in theme field as JSON
+            import json
+            theme_data = {}
+            if settings.theme and settings.theme != 'hse_red':
+                try:
+                    theme_data = json.loads(settings.theme)
+                except json.JSONDecodeError:
+                    theme_data = {}
+            
+            if primary_color:
+                theme_data['primary_color'] = primary_color
+            if secondary_color:
+                theme_data['secondary_color'] = secondary_color
+            
+            settings.theme = json.dumps(theme_data)
+            settings.save()
+        
+        return Response({
+            'message': 'Colors updated successfully',
+            'primary_color': primary_color,
+            'secondary_color': secondary_color,
+        })
+
+
 # ==================== Messaging Views ====================
 
 class MessageListView(APIView):

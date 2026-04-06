@@ -13,6 +13,7 @@ from .views import (
     PostDeleteView,
     PostListCreateView,
     PostStatusUpdateView,
+    ProjectColorsUpdateView,
     ProjectCreateView,
     ProjectDetailView,
     ProjectMembersView,
@@ -65,6 +66,7 @@ urlpatterns = [
     path('project/members/', ProjectMembersView.as_view(), name='project-members'),
     path('project/regenerate-key/', ProjectRegenerateKeyView.as_view(), name='project-regenerate-key'),
     path('project/settings/', ProjectSettingsView.as_view(), name='project-settings'),
+    path('project/settings/update-colors/', ProjectColorsUpdateView.as_view(), name='project-update-colors'),
     
     # Safety Intelligence
     path('project/stats/', ProjectStatsView.as_view(), name='project-stats'),

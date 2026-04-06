@@ -260,65 +260,52 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Project Access Key', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          // Compact Access Key Card
           Card(
             color: Colors.red.shade50,
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
                 children: [
-                  const Text(
-                    'Share this key with Officers and Supervisors to join your project:',
-                    style: TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Text(
-                      _settings?.accessCode ?? 'Loading...',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        color: Colors.red,
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.red.shade200),
                       ),
-                      textAlign: TextAlign.center,
+                      child: Text(
+                        _settings?.accessCode ?? 'Loading...',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _copyAccessKeyToClipboard(),
-                          icon: const Icon(Icons.copy, size: 18),
-                          label: const Text('Copy Key'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _isSaving ? null : () => _regenerateAccessKey(),
-                          icon: _isSaving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.refresh, size: 18),
-                          label: Text(_isSaving ? 'Regenerating...' : 'Regenerate'),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => _copyAccessKeyToClipboard(),
+                    icon: const Icon(Icons.copy, size: 20),
+                    tooltip: 'Copy Key',
+                  ),
+                  IconButton(
+                    onPressed: _isSaving ? null : () => _regenerateAccessKey(),
+                    icon: _isSaving 
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
+                      : const Icon(Icons.refresh, size: 20),
+                    tooltip: 'Regenerate',
+                    color: Colors.red,
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           const Text('Project Customization', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           _colorTile('Primary Theme Color', _primaryColor, (c) => _updateColors(c, _secondaryColor)),
