@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/app_models.dart';
@@ -169,6 +170,45 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     }
   }
 
+  Future<void> _copyAccessKeyToClipboard() async {
+    if (_settings?.accessCode == null) return;
+    await Clipboard.setData(ClipboardData(text: _settings!.accessCode!));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Access key copied to clipboard!')),
+      );
+    }
+  }
+
+  Future<void> _regenerateAccessKey() async {
+    final token = ref.read(projectProvider).token;
+    if (token == null) return;
+    setState(() => _isSaving = true);
+    try {
+      final api = ApiService(baseUrl: ApiService.getDefaultBaseUrl());
+      final result = await api.regenerateProjectKey(token);
+      final newKey = result['access_code'] as String?;
+      if (newKey != null) {
+        setState(() {
+          _settings = _settings?.copyWith(accessCode: newKey);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Access key regenerated successfully!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to regenerate key: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final projectState = ref.watch(projectProvider);
@@ -220,6 +260,65 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text('Project Access Key', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Card(
+            color: Colors.red.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Share this key with Officers and Supervisors to join your project:',
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Text(
+                      _settings?.accessCode ?? 'Loading...',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                        color: Colors.red,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _copyAccessKeyToClipboard(),
+                          icon: const Icon(Icons.copy, size: 18),
+                          label: const Text('Copy Key'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isSaving ? null : () => _regenerateAccessKey(),
+                          icon: _isSaving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.refresh, size: 18),
+                          label: Text(_isSaving ? 'Regenerating...' : 'Regenerate'),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           const Text('Project Customization', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           _colorTile('Primary Theme Color', _primaryColor, (c) => _updateColors(c, _secondaryColor)),

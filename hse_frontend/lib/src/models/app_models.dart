@@ -248,6 +248,7 @@ class ProjectSettings {
   final String projectDuration;
   final int manHours;
   final int equipmentCount;
+  final String? accessCode;
 
   const ProjectSettings({
     required this.id,
@@ -258,6 +259,7 @@ class ProjectSettings {
     this.projectDuration = '',
     this.manHours = 0,
     this.equipmentCount = 0,
+    this.accessCode,
   });
 
   factory ProjectSettings.fromJson(Map<String, dynamic> json) {
@@ -270,6 +272,31 @@ class ProjectSettings {
       projectDuration: json['project_duration'] as String? ?? '',
       manHours: json['man_hours'] as int? ?? 0,
       equipmentCount: json['equipment_count'] as int? ?? 0,
+      accessCode: json['access_code'] as String?,
+    );
+  }
+
+  ProjectSettings copyWith({
+    int? id,
+    String? appName,
+    String? theme,
+    String? logoUrl,
+    String? projectArea,
+    String? projectDuration,
+    int? manHours,
+    int? equipmentCount,
+    String? accessCode,
+  }) {
+    return ProjectSettings(
+      id: id ?? this.id,
+      appName: appName ?? this.appName,
+      theme: theme ?? this.theme,
+      logoUrl: logoUrl ?? this.logoUrl,
+      projectArea: projectArea ?? this.projectArea,
+      projectDuration: projectDuration ?? this.projectDuration,
+      manHours: manHours ?? this.manHours,
+      equipmentCount: equipmentCount ?? this.equipmentCount,
+      accessCode: accessCode ?? this.accessCode,
     );
   }
 }

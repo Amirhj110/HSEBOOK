@@ -325,11 +325,13 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     logo = serializers.SerializerMethodField()
+    access_code = serializers.CharField(source='project.access_code', read_only=True)
 
     class Meta:
         model = ProjectSettings
         fields = ['id', 'app_name', 'theme', 'project_area', 'project_duration',
-                  'logo', 'man_hours', 'equipment_count', 'openai_api_key', 'ai_risk_trends_enabled']
+                  'logo', 'man_hours', 'equipment_count', 'openai_api_key', 'ai_risk_trends_enabled',
+                  'access_code']
 
     def get_logo(self, obj):
         if obj.logo:
