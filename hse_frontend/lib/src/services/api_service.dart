@@ -13,6 +13,9 @@ class ApiService {
 
   static String getDefaultBaseUrl() {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
+    if (kDebugMode) {
+      return 'http://127.0.0.1:8000';
+    }
     return 'https://hsebook.pythonanywhere.com';
   }
 
