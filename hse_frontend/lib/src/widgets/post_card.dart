@@ -144,6 +144,14 @@ class _PostCardState extends ConsumerState<PostCard> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final postState = ref.watch(postProvider);
+    // Find the latest post from provider to keep UI in sync
+    final currentPost = postState.posts.firstWhere(
+      (p) => p.id == widget.post.id,
+      orElse: () => widget.post,
+    );
     final statusColor = currentPost.isComplete ? Colors.green.shade700 : Colors.red.shade700;
     final categoryColor = _getCategoryColor();
 

@@ -219,7 +219,7 @@ class ObservationCard extends StatelessWidget {
                         observation.imageUrls[index],
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorBuilder: (_, _, _) => Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           color: Colors.grey.shade200,
                           child: const Icon(
                             Icons.broken_image,

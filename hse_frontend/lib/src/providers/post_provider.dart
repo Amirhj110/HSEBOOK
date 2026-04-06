@@ -227,7 +227,11 @@ class PostNotifier extends StateNotifier<PostState> {
       projectId: post.projectId,
       projectName: post.projectName,
       createdAt: post.createdAt,
-      imageUrl: post.imageUrl,
+      postType: post.postType,
+      incidentType: post.incidentType,
+      observationText: post.observationText,
+      description: post.description,
+      rectification: post.rectification,
     );
     state = state.copyWith(posts: updatedPosts);
   }
