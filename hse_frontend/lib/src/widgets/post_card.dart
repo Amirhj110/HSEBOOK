@@ -144,15 +144,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final postState = ref.watch(postProvider);
-    // Find the current post in the state to get latest status
-    final currentPost = postState.posts.firstWhere(
-      (p) => p.id == widget.post.id,
-      orElse: () => widget.post,
-    );
-    final statusColor = _getStatusColor(currentPost.status);
+    final statusColor = currentPost.isComplete ? Colors.green.shade700 : Colors.red.shade700;
     final categoryColor = _getCategoryColor();
 
     final projectState = ref.watch(projectProvider);
@@ -161,17 +153,21 @@ class _PostCardState extends ConsumerState<PostCard> {
     final isAdmin = user?.isProjectAdmin ?? false;
 
     return Card(
-      elevation: 2,
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: statusColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header: Author & Status
           ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: CircleAvatar(
-              backgroundColor: categoryColor,
+              radius: 24,
+              backgroundColor: categoryColor.withOpacity(0.1),
               child: currentPost.authorProfilePicture != null
                   ? ClipOval(
                       child: Image.network(
@@ -183,255 +179,205 @@ class _PostCardState extends ConsumerState<PostCard> {
                       currentPost.authorName.isNotEmpty
                           ? currentPost.authorName[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(color: categoryColor, fontWeight: FontWeight.bold),
                     ),
             ),
             title: Text(
               currentPost.authorName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${currentPost.authorRole} • ${currentPost.authorAssignedArea}',
-                  style: const TextStyle(fontSize: 12),
+                  '${currentPost.authorRole} • ${currentPost.location}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.circle, size: 10, color: statusColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      currentPost.status,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    _badge(currentPost.postType.toUpperCase(), Colors.blue.shade700),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: categoryColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: categoryColor),
-                      ),
-                      child: Text(
-                        currentPost.category,
-                        style: TextStyle(
-                          color: categoryColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    _badge(currentPost.incidentType.toUpperCase(), categoryColor),
+                    const SizedBox(width: 8),
+                    _badge(currentPost.status.toUpperCase(), statusColor),
                   ],
                 ),
               ],
             ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            trailing: Text(
+              _formatDate(currentPost.createdAt),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+          ),
+
+          // Post Content Sections
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (currentPost.commentsCount > 0)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.comment, size: 14, color: Colors.grey),
-                      Text(
-                        currentPost.commentsCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                if (currentPost.observationText.isNotEmpty) ...[
+                  Text(
+                    currentPost.observationText,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 8),
+                ],
                 Text(
-                  _formatDate(currentPost.createdAt),
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                  currentPost.description,
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
                 ),
+                if (currentPost.rectification.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 18, color: Colors.green.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: RichText(
+                            text: TextSpan(
+                              style: const TextStyle(fontSize: 13, color: Colors.black87),
+                              children: [
+                                const TextSpan(text: 'Rectification: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: currentPost.rectification),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              currentPost.content,
-              style: const TextStyle(fontSize: 15),
-            ),
-          ),
-          // Display multiple images
-          if (currentPost.imageUrls.isNotEmpty)
+
+          // Image Gallery
+          if (currentPost.imageUrls.isNotEmpty) ...[
+            const SizedBox(height: 12),
             SizedBox(
               height: 250,
-              child: PageView.builder(
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 itemCount: currentPost.imageUrls.length,
                 itemBuilder: (context, index) {
-                  final imgUrl = currentPost.imageUrls[index];
                   return Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.only(right: 8),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        imgUrl,
+                        currentPost.imageUrls[index],
+                        width: 300,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Center(
-                          child: Icon(Icons.broken_image, size: 50),
-                        ),
                       ),
                     ),
                   );
                 },
               ),
             ),
+          ],
+
+          const SizedBox(height: 12),
           const Divider(height: 1),
-          // YouTube-Style Comment Dropdown
-          ExpansionTile(
-            leading: const Icon(Icons.comment, size: 20),
-            title: Text(
-              'Comments (${currentPost.commentsCount})',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            onExpansionChanged: (expanded) {
-              if (expanded && _allComments.isEmpty) {
-                _loadAllComments();
-              }
-            },
-            children: [
-              if (_isLoadingComments)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (_allComments.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'No comments yet. Be the first!',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _allComments.length,
-                  itemBuilder: (context, index) {
-                    final comment = _allComments[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.red.shade100,
-                        child: Text(
-                          comment.authorName.isNotEmpty
-                              ? comment.authorName[0].toUpperCase()
-                              : '?',
-                        ),
-                      ),
-                      title: Text(
-                        comment.authorName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                      subtitle: Text(comment.content),
-                      trailing: Text(
-                        _formatDate(comment.createdAt),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              // Add comment button
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextButton.icon(
-                  onPressed: _showAddCommentDialog,
-                  icon: const Icon(Icons.add_comment, size: 20),
-                  label: const Text('Add a comment'),
-                ),
+
+          // Quick Comments (Top 2)
+          if (currentPost.recentComments.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: currentPost.recentComments.take(2).map((c) => _buildMiniComment(c)).toList(),
               ),
-            ],
-          ),
-          const Divider(height: 1),
+            ),
+
+          // Action Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (role == 'SUPERVISOR' ||
-                    role == 'MANAGER' ||
-                    role == 'ADMIN' ||
-                    isAdmin) ...[
-                  TextButton.icon(
-                    onPressed: _togglePostStatus,
-                    icon: Icon(
-                      currentPost.status == 'Complete'
-                          ? Icons.check_circle
-                          : Icons.pending,
-                      color: statusColor,
-                      size: 28,
+                if (role == 'SUPERVISOR' || role == 'MANAGER' || role == 'ADMIN' || isAdmin)
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: _showAddCommentDialog,
+                      icon: const Icon(Icons.comment_outlined, size: 20),
+                      label: const Text('Comment'),
                     ),
-                    label: Text(
-                      currentPost.status == 'Complete'
-                          ? 'Mark Pending'
-                          : 'Mark Complete',
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                  ),
+                if (role == 'MANAGER' || role == 'ADMIN' || isAdmin)
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: _togglePostStatus,
+                      icon: Icon(
+                        currentPost.isComplete ? Icons.lock_open : Icons.lock_outline,
+                        size: 20,
+                        color: statusColor,
+                      ),
+                      label: Text(
+                        currentPost.isComplete ? 'Reopen' : 'Close',
+                        style: TextStyle(color: statusColor),
                       ),
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: _showAddCommentDialog,
-                    icon: const Icon(
-                      Icons.comment_rounded,
-                      color: Colors.black,
-                      size: 28,
-                    ),
-                    label: const Text(
-                      'Comment',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-                if (role == 'ADMIN' || role == 'MANAGER' || isAdmin) ...[
-                  TextButton.icon(
+                if (isAdmin || role == 'ADMIN')
+                  IconButton(
                     onPressed: () => _confirmDeletePost(context, ref),
-                    icon: const Icon(
-                      Icons.delete_forever_rounded,
-                      color: Colors.red,
-                      size: 28,
-                    ),
-                    label: const Text(
-                      'Delete',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
                   ),
-                ],
+                
+                // Expansion toggle for all comments
+                if (currentPost.commentsCount > 2)
+                  TextButton(
+                    onPressed: _loadAllComments,
+                    child: Text('View all ${currentPost.commentsCount} comments'),
+                  ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildMiniComment(Comment comment) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${comment.authorName}: ',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          Expanded(
+            child: Text(
+              comment.content,
+              style: const TextStyle(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -1,0 +1,6 @@
+- [x] Stage changes
+- [x] Commit CORS update
+- [x] Push to remote
+- [ ] Set up CI/CD pipeline
+- [ ] Write unit tests
+- [ ] Deploy to production

@@ -31,13 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   // Staff registration fields
   final _accessCodeCtrl = TextEditingController();
-  String? _selectedRole = 'HSE OFFICER';
-
-  final List<Map<String, String>> _roleOptions = [
-    {'value': 'HSE OFFICER', 'label': 'HSE Officer'},
-    {'value': 'HSE SUPERVISOR', 'label': 'HSE Supervisor'},
-    {'value': 'HSE MANAGER', 'label': 'HSE Manager'},
-  ];
+  String? _selectedRole = 'ADMIN';
 
   @override
   void dispose() {
@@ -366,65 +360,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Admin/Staff Toggle
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(8),
+        // Unified Role Selection
+        DropdownButtonFormField<String>(
+          value: _selectedRole,
+          decoration: const InputDecoration(
+            labelText: 'Your Role',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.badge),
           ),
-          padding: const EdgeInsets.all(4),
-          child: Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _isAdminRegistration = true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: _isAdminRegistration
-                          ? Colors.red
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Admin',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: _isAdminRegistration
-                            ? Colors.white
-                            : Colors.black54,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _isAdminRegistration = false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: !_isAdminRegistration
-                          ? Colors.red
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Staff',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: !_isAdminRegistration
-                            ? Colors.white
-                            : Colors.black54,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          items: [
+            {'value': 'ADMIN', 'label': 'Project Admin'},
+            {'value': 'HSE MANAGER', 'label': 'HSE Manager'},
+            {'value': 'HSE SUPERVISOR', 'label': 'HSE Supervisor'},
+            {'value': 'HSE OFFICER', 'label': 'HSE Officer'},
+          ].map((option) {
+            return DropdownMenuItem<String>(
+              value: option['value'],
+              child: Text(option['label']!),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedRole = value;
+              _isAdminRegistration = (value == 'ADMIN');
+            });
+          },
         ),
         const SizedBox(height: 16),
 
@@ -490,7 +450,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Project Name (Required for both)
+        // Project Name (Required for all)
         TextField(
           controller: _projectNameCtrl,
           decoration: const InputDecoration(
@@ -501,7 +461,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 12),
 
-        // Admin-specific fields
+        // Logical branching for Admin vs Others
         if (_isAdminRegistration) ...[
           Row(
             children: [
@@ -509,7 +469,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: TextField(
                   controller: _projectAreaCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Project Area',
+                    labelText: 'Project Location',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -528,41 +488,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
           ),
         ] else ...[
-          // Staff-specific: Role Selection
-          DropdownButtonFormField<String>(
-            initialValue: _selectedRole,
-            decoration: const InputDecoration(
-              labelText: 'Role',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.badge),
-            ),
-            items: _roleOptions.map((option) {
-              return DropdownMenuItem<String>(
-                value: option['value'],
-                child: Text(option['label']!),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedRole = value;
-              });
-            },
-          ),
-          const SizedBox(height: 12),
-          // Staff-specific: Access Code
+          // Non-Admins: Access Key/Code
           TextField(
             controller: _accessCodeCtrl,
             decoration: const InputDecoration(
-              labelText: 'Access Code',
+              labelText: 'Access Key',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.key),
-              helperText: 'Get this from your admin',
+              helperText: 'Obtain this key from your Project Admin',
             ),
           ),
         ],
         const SizedBox(height: 24),
 
-        // Register Button (Green - Facebook style)
+        // Unified Register Button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -572,7 +511,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? _handleAdminRegister
                       : _handleStaffRegister),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: Colors.red.shade700,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(

@@ -167,12 +167,14 @@ SIMPLE_JWT = {
 
 # CORS Configuration (for Flutter frontend)
 CORS_ALLOWED_ORIGINS = [
-    "*",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://amirhj110.github.io",
+    "https://amirhj110.github.io",  # Your live frontend
+    "http://localhost:5500",        # Your local Flutter web port (check yours)
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
-CORS_ALLOW_CREDENTIALS = True
+
+# Add this to allow any local port if you're testing on different ones
+CORS_ALLOW_ALL_ORIGINS = True
 
 # File Upload Settings
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB

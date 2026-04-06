@@ -132,9 +132,12 @@ class PostNotifier extends StateNotifier<PostState> {
 
   Future<void> createPost({
     required String token,
-    required String content,
     required int projectId,
-    String category = 'Unsafe Act',
+    required String postType,
+    required String incidentType,
+    required String observation,
+    required String description,
+    required String rectification,
     String severity = 'Medium',
     String location = '',
     List<Uint8List>? imageBytes,
@@ -144,9 +147,12 @@ class PostNotifier extends StateNotifier<PostState> {
     try {
       final post = await api.createPost(
         token: token,
-        content: content,
         projectId: projectId,
-        category: category,
+        postType: postType,
+        incidentType: incidentType,
+        observation: observation,
+        description: description,
+        rectification: rectification,
         severity: severity,
         location: location,
         imageBytes: imageBytes,

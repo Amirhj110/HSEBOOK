@@ -28,44 +28,61 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   Timer? _refreshTimer;
 
+  Box<dynamic>? _msgBox;
+  static const String _boxName = 'chat_cache';
+
   @override
   void initState() {
     super.initState();
-    _loadMessages();
-    // Refresh messages every 4 seconds for real-time feel
-    _refreshTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      _loadMessages();
-    });
+    _initHive();
+    // Refresh messages every 5 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _loadMessages());
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    _refreshTimer?.cancel();
-    super.dispose();
+  Future<void> _initHive() async {
+    _msgBox = await Hive.openBox(_boxName);
+    _loadCachedMessages();
+    _loadMessages();
+  }
+
+  void _loadCachedMessages() {
+    final key = 'chat_${widget.currentUserId}_${widget.recipient.userId}';
+    final cached = _msgBox?.get(key);
+    if (cached != null && cached is List) {
+      if (mounted) {
+        setState(() {
+          _messages.clear();
+          _messages.addAll(cached.map((m) => Message.fromJson(Map<String, dynamic>.from(m))));
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    }
   }
 
   Future<void> _loadMessages() async {
     try {
       final api = ApiService(baseUrl: ApiService.getDefaultBaseUrl());
-      final messages = await api.getMessages(
-        widget.token,
-        widget.recipient.userId,
-      );
+      final messages = await api.getMessages(widget.token, widget.recipient.userId);
+      
       if (mounted) {
         setState(() {
           _messages.clear();
           _messages.addAll(messages);
           _isLoading = false;
         });
+        _cacheMessages(messages);
         _scrollToBottom();
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _cacheMessages(List<Message> messages) async {
+    final key = 'chat_${widget.currentUserId}_${widget.recipient.userId}';
+    final data = messages.map((m) => m.toJson()).toList();
+    await _msgBox?.put(key, data);
   }
 
   Future<void> _sendMessage() async {

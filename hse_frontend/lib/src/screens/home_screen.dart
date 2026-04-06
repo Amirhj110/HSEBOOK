@@ -126,9 +126,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           try {
             await ref.read(postProvider.notifier).createPost(
                   token: token,
-                  content: data['content'] as String,
                   projectId: projectId,
-                  category: data['category'] as String,
+                  postType: data['postType'] as String,
+                  incidentType: data['incidentType'] as String,
+                  observation: data['observation'] as String,
+                  description: data['description'] as String,
+                  rectification: data['rectification'] as String,
                   severity: data['severity'] as String,
                   location: data['location'] as String,
                   imageBytes: data['imageBytes'] as List<Uint8List>?,

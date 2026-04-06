@@ -13,17 +13,7 @@ class ApiService {
 
   static String getDefaultBaseUrl() {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    if (kIsWeb) return 'https://hsebook.pythonanywhere.com';
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'http://10.0.2.2:8000';
-      case TargetPlatform.iOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.fuchsia:
-        return 'http://127.0.0.1:8000';
-    }
+    return 'https://hsebook.pythonanywhere.com';
   }
 
   // ==================== Authentication ====================
@@ -171,18 +161,40 @@ class ApiService {
     }
   }
 
-  Future<void> changeUserRole(String token, int userId, String newRole) async {
+  Future<void> changeUserRole(String token, int userId, String role) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/admin/change-role/'),
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
-      body: jsonEncode({'user_id': userId, 'new_role': newRole}),
+      body: jsonEncode({'user_id': userId, 'role': role}),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to change role: ${response.body}');
-    }
+    if (response.statusCode != 200) throw Exception('Failed to change role');
+  }
+
+  Future<void> assignUserArea(String token, int userId, String area) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/admin/assign-area/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId, 'assigned_area': area}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to assign area');
+  }
+
+  Future<void> updateProjectColors(String token, String primaryColor, String secondaryColor) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/project/settings/update-colors/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'primary_color': primaryColor, 'secondary_color': secondaryColor}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to update colors');
   }
 
   // ==================== Project ====================
@@ -400,9 +412,12 @@ class ApiService {
 
   Future<PostModel> createPost({
     required String token,
-    required String content,
     required int projectId,
-    String category = 'Unsafe Act',
+    required String postType,
+    required String incidentType,
+    required String observation,
+    required String description,
+    required String rectification,
     String severity = 'Medium',
     String location = '',
     List<Uint8List>? imageBytes,
@@ -413,12 +428,16 @@ class ApiService {
       Uri.parse('$baseUrl/api/posts/'),
     );
     request.headers['Authorization'] = 'Bearer $token';
-    request.fields['content'] = content;
     request.fields['project'] = projectId.toString();
-    request.fields['category'] = category;
+    request.fields['post_type'] = postType;
+    request.fields['incident_type'] = incidentType;
+    request.fields['observation'] = observation;
+    request.fields['description'] = description;
+    request.fields['rectification'] = rectification;
     request.fields['severity'] = severity;
     request.fields['location'] = location;
-    request.fields['status'] = 'Pending';
+    request.fields['category'] = incidentType; // For legacy support
+    request.fields['status'] = 'Open'; // Default to Open
 
     if (imageBytes != null && imageBytes.isNotEmpty) {
       for (var i = 0; i < imageBytes.length; i++) {
@@ -597,5 +616,81 @@ class ApiService {
       throw Exception('Failed to add comment: ${response.body}');
     }
     return Comment.fromJson(jsonDecode(response.body));
+  }
+
+  // ==================== User & Admin ====================
+
+  Future<void> changeUserRole(String token, int userId, String role) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/admin/change-role/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId, 'role': role}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to change role');
+  }
+
+  Future<void> assignUserArea(String token, int userId, String area) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/admin/assign-area/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId, 'assigned_area': area}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to assign area');
+  }
+
+  Future<void> updateProjectColors(String token, String primaryColor, String secondaryColor) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/project/settings/update-colors/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'primary_color': primaryColor, 'secondary_color': secondaryColor}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to update colors');
+  }
+
+  Future<dynamic> updateProfilePatch(
+    String token, {
+    String? firstName,
+    String? lastName,
+    String? bio,
+    Uint8List? profilePictureBytes,
+    String? profilePictureName,
+  }) async {
+    final request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('$baseUrl/api/profile/update/'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    if (firstName != null) request.fields['first_name'] = firstName;
+    if (lastName != null) request.fields['last_name'] = lastName;
+    if (bio != null) request.fields['bio'] = bio;
+
+    if (profilePictureBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'profile_picture',
+          profilePictureBytes,
+          filename: profilePictureName ?? 'profile.jpg',
+        ),
+      );
+    }
+
+    final streamlinedResponse = await request.send();
+    final response = await http.Response.fromStream(streamlinedResponse);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update profile: ${response.body}');
+    }
+    return jsonDecode(response.body);
   }
 }
