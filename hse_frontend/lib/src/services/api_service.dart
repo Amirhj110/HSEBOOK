@@ -152,12 +152,11 @@ class ApiService {
 
   Future<void> deleteUser(String token, int userId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/admin/users/'),
+      Uri.parse('$baseUrl/api/admin/users/$userId/delete/'),
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
-      body: jsonEncode({'user_id': userId}),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete user: ${response.body}');
