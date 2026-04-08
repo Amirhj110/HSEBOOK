@@ -12,6 +12,5 @@ urlpatterns = [
     path('', include('core.urls')),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files with CORS headers (always, not just DEBUG)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
