@@ -107,7 +107,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _fetchConversations() async {
     final token = ref.read(projectProvider).token;
-    if (token == null) return;
+    if (token == null) {
+      setState(() => _isLoadingConversations = false);
+      return;
+    }
 
     setState(() => _isLoadingConversations = true);
     try {
@@ -115,9 +118,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final data = await api.getConversations(token);
       setState(() {
         _conversations = data.map((c) => Conversation.fromJson(c)).toList();
-        _isLoadingConversations = false;
       });
     } catch (e) {
+      // Error handling - keep existing conversations if any
+    } finally {
       setState(() => _isLoadingConversations = false);
     }
   }
@@ -267,7 +271,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.message),
-              onPressed: () => _showMessengerDrawer(context),
+              onPressed: () async => await _showMessengerDrawer(context),
               tooltip: 'HSE Messenger',
             ),
             if (_unreadMessageCount > 0)
@@ -547,13 +551,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _showMessengerDrawer(BuildContext context) {
+  Future<void> _showMessengerDrawer(BuildContext context) async {
     final projectState = ref.read(projectProvider);
     final currentUser = projectState.user;
     final token = projectState.token;
 
+    // Ensure loading state is set before showing the drawer
+    setState(() => _isLoadingConversations = true);
+    
     // Refresh conversations when opening
-    _fetchConversations();
+    await _fetchConversations();
 
     showModalBottomSheet(
       context: context,
@@ -630,6 +637,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           )
                         : ListView.builder(
                             controller: scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: _conversations.length,
                             itemBuilder: (context, index) {
                               final conversation = _conversations[index];
