@@ -98748,9 +98748,10 @@ atv(a,b){var s=0,r=A.A(t.H),q=this,p,o
 var $async$Cq=A.w(function(c,d){if(c===1)return A.x(d,r)
 for(;;)switch(s){case 0:p=t.N
 s=2
-return A.o(A.aJo(A.c6(q.a+"/api/admin/users/"+b+"/delete/"),A.a9(["Authorization","Bearer "+a,"Content-Type","application/json"],p,p)),$async$Cq)
+return A.o(A.aJo(A.c6(q.a+"/api/admin/users/"+b+"/"),A.a9(["Authorization","Bearer "+a,"Content-Type","application/json"],p,p)),$async$Cq)
 case 2:o=d
-if(o.b!==200)throw A.e(A.bS("Failed to delete user: "+o.gdN(0)))
+p=o.b
+if(p!==200&&p!==204)throw A.e(A.bS("Failed to delete user: "+o.gdN(0)))
 return A.y(null,r)}})
 return A.z($async$Cq,r)},
 BP(a,b,c){return this.aqS(a,b,c)},
