@@ -111,7 +111,9 @@ class Post(models.Model):
         HIGH = 'High', 'High'
 
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    content = models.TextField()
+    observation = models.TextField()
+    description = models.TextField(blank=True, default='')
+    rectification = models.TextField(blank=True, default='')
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.UNSAFE_ACT)
     severity = models.CharField(max_length=10, choices=Severity.choices, default=Severity.LOW)
     location = models.CharField(max_length=255, blank=True, default='')

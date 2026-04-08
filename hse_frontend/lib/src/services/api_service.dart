@@ -434,7 +434,9 @@ class ApiService {
     request.fields['project'] = projectId.toString();
     request.fields['post_type'] = postType;
     request.fields['incident_type'] = incidentType;
-    request.fields['content'] = '$observation\n\nDescription: $description\n\nRectification: $rectification';
+    request.fields['observation'] = observation;
+    request.fields['description'] = description;
+    request.fields['rectification'] = rectification;
     request.fields['severity'] = severity;
     request.fields['location'] = location;
     request.fields['category'] = incidentType; // For legacy support
