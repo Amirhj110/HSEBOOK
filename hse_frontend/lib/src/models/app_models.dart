@@ -349,6 +349,40 @@ class Message {
   }
 }
 
+class Conversation {
+  final int userId;
+  final String username;
+  final String name;
+  final String role;
+  final bool isProjectAdmin;
+  final String? lastMessage;
+  final int unreadCount;
+
+  const Conversation({
+    required this.userId,
+    required this.username,
+    required this.name,
+    required this.role,
+    required this.isProjectAdmin,
+    this.lastMessage,
+    required this.unreadCount,
+  });
+
+  factory Conversation.fromJson(Map<String, dynamic> json) {
+    return Conversation(
+      userId: json['user_id'] as int? ?? 0,
+      username: json['username'] as String? ?? '',
+      name: json['name'] as String? ?? json['username'] as String? ?? '',
+      role: json['role'] as String? ?? 'OFFICER',
+      isProjectAdmin: json['is_project_admin'] as bool? ?? false,
+      lastMessage: json['last_message'] as String?,
+      unreadCount: json['unread_count'] as int? ?? 0,
+    );
+  }
+
+  String get displayName => name.isNotEmpty ? name : username;
+}
+
 class ProjectMember {
   final int userId;
   final String username;

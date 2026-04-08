@@ -12,6 +12,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'access_code', 'admin', 'created_at')
+    readonly_fields = ('access_code',)
 
 
 @admin.register(Profile)

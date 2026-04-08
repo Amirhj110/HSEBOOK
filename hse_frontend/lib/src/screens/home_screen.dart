@@ -27,6 +27,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isLoadingSettings = false;
   int _unreadMessageCount = 0;
   bool _isLoadingUnreadCount = false;
+  List<Conversation> _conversations = [];
+  bool _isLoadingConversations = false;
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ref.read(projectProvider.notifier).fetchProjectMembers();
       _fetchProjectSettings();
       _fetchUnreadMessageCount();
+      _fetchConversations();
       // Start polling for unread count every 10 seconds
       _startUnreadCountPolling();
     });
@@ -96,9 +99,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Future.delayed(const Duration(seconds: 10), () {
       if (mounted) {
         _fetchUnreadMessageCount();
+        _fetchConversations();
         _startUnreadCountPolling(); // Schedule next poll
       }
     });
+  }
+
+  Future<void> _fetchConversations() async {
+    final token = ref.read(projectProvider).token;
+    if (token == null) return;
+
+    setState(() => _isLoadingConversations = true);
+    try {
+      final api = ApiService(baseUrl: ApiService.getDefaultBaseUrl());
+      final data = await api.getConversations(token);
+      setState(() {
+        _conversations = data.map((c) => Conversation.fromJson(c)).toList();
+        _isLoadingConversations = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingConversations = false);
+    }
+  }
+
+  Future<void> _markConversationAsRead(int senderId) async {
+    final token = ref.read(projectProvider).token;
+    if (token == null) return;
+
+    try {
+      final api = ApiService(baseUrl: ApiService.getDefaultBaseUrl());
+      await api.markMessagesAsRead(token, senderId);
+      // Refresh conversations and unread count
+      await _fetchConversations();
+      await _fetchUnreadMessageCount();
+    } catch (e) {
+      // Silently fail
+    }
   }
 
   void _showCreateObservationDialog(BuildContext context) {
@@ -513,9 +549,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _showMessengerDrawer(BuildContext context) {
     final projectState = ref.read(projectProvider);
-    final members = projectState.members;
     final currentUser = projectState.user;
     final token = projectState.token;
+
+    // Refresh conversations when opening
+    _fetchConversations();
 
     showModalBottomSheet(
       context: context,
@@ -562,71 +600,151 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               Expanded(
-                child: members.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No members available',
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: scrollController,
-                        itemCount: members.length,
-                        itemBuilder: (context, index) {
-                          final member = members[index];
-                          if (member.userId == currentUser?.id) {
-                            return const SizedBox.shrink();
-                          }
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.red.shade100,
-                              child: Text(
-                                member.fullName.isNotEmpty
-                                    ? member.fullName[0].toUpperCase()
-                                    : '?',
-                                style: TextStyle(color: Colors.red.shade700),
-                              ),
-                            ),
-                            title: Text(member.fullName),
-                            subtitle: Text(member.role),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              Navigator.pop(ctx);
-                              await showDialog(
-                                context: context,
-                                builder: (dialogContext) => Dialog(
-                                  insetPadding: const EdgeInsets.all(16),
-                                  child: SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.8,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.7,
-                                    child: ChatScreen(
-                                      recipient: member,
-                                      currentUserId: currentUser?.id ?? 0,
-                                      token: token ?? '',
-                                      showAppBar: false,
-                                    ),
+                child: _isLoadingConversations
+                    ? const Center(child: CircularProgressIndicator())
+                    : _conversations.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble_outline,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No conversations yet',
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Start messaging from project members',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 12,
                                   ),
                                 ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            itemCount: _conversations.length,
+                            itemBuilder: (context, index) {
+                              final conversation = _conversations[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.red.shade100,
+                                  child: Text(
+                                    conversation.displayName.isNotEmpty
+                                        ? conversation.displayName[0].toUpperCase()
+                                        : '?',
+                                    style: TextStyle(color: Colors.red.shade700),
+                                  ),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        conversation.displayName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    if (conversation.unreadCount > 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          conversation.unreadCount > 99
+                                              ? '99+'
+                                              : conversation.unreadCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(conversation.role),
+                                    if (conversation.lastMessage != null)
+                                      Text(
+                                        conversation.lastMessage!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: conversation.unreadCount > 0
+                                              ? Colors.black87
+                                              : Colors.grey.shade600,
+                                          fontWeight: conversation.unreadCount > 0
+                                              ? FontWeight.w500
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                isThreeLine: conversation.lastMessage != null,
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () async {
+                                  // Mark messages as read before opening
+                                  await _markConversationAsRead(conversation.userId);
+                                  Navigator.pop(ctx);
+                                  
+                                  // Find the member to pass to ChatScreen
+                                  final projectState = ref.read(projectProvider);
+                                  final member = projectState.members.firstWhere(
+                                    (m) => m.userId == conversation.userId,
+                                    orElse: () => ProjectMember(
+                                      userId: conversation.userId,
+                                      username: conversation.username,
+                                      email: '',
+                                      firstName: conversation.name.split(' ').first,
+                                      lastName: conversation.name.split(' ').length > 1
+                                          ? conversation.name.split(' ').sublist(1).join(' ')
+                                          : '',
+                                      role: conversation.role,
+                                      isProjectAdmin: conversation.isProjectAdmin,
+                                      joinedAt: DateTime.now(),
+                                    ),
+                                  );
+                                  
+                                  await showDialog(
+                                    context: context,
+                                    builder: (dialogContext) => Dialog(
+                                      insetPadding: const EdgeInsets.all(16),
+                                      child: SizedBox(
+                                        width: MediaQuery.of(context).size.width * 0.8,
+                                        height: MediaQuery.of(context).size.height * 0.7,
+                                        child: ChatScreen(
+                                          recipient: member,
+                                          currentUserId: currentUser?.id ?? 0,
+                                          token: token ?? '',
+                                          showAppBar: false,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                  // Refresh unread count after chat closes
+                                  _fetchUnreadMessageCount();
+                                  _fetchConversations();
+                                },
                               );
-                              // Refresh unread count after chat closes
-                              _fetchUnreadMessageCount();
                             },
-                          );
-                        },
-                      ),
+                          ),
               ),
             ],
           ),

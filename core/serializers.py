@@ -211,6 +211,7 @@ class PostImageSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserSummarySerializer(read_only=True)
+    author_name = serializers.SerializerMethodField()
     author_profile_picture = serializers.SerializerMethodField()
     author_role = serializers.CharField(source='author.role', read_only=True)
     author_assigned_area = serializers.SerializerMethodField()
@@ -230,12 +231,18 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'author_profile_picture', 'author_role', 'author_assigned_area',
+        fields = ['id', 'author', 'author_name', 'author_profile_picture', 'author_role', 'author_assigned_area',
                   'observation', 'description', 'rectification',
                   'category', 'severity', 'location', 'assigned_area', 'status',
                   'project', 'project_name', 'images',
                   'comments_count', 'recent_comments', 'created_at']
         read_only_fields = ['id', 'created_at', 'author', 'project']
+
+    def get_author_name(self, obj):
+        """Return author's full name or username."""
+        if obj.author.first_name and obj.author.last_name:
+            return f"{obj.author.first_name} {obj.author.last_name}".strip()
+        return obj.author.username
 
     def get_author_profile_picture(self, obj):
         try:
@@ -400,6 +407,7 @@ class ConversationSerializer(serializers.ModelSerializer):
     """Summarized conversation for sidebar."""
     user_id = serializers.IntegerField(source='id')
     username = serializers.CharField(source='username')
+    name = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
     unread_count = serializers.SerializerMethodField()
     role = serializers.CharField()
@@ -407,7 +415,13 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'role', 'is_project_admin', 'last_message', 'unread_count']
+        fields = ['user_id', 'username', 'name', 'role', 'is_project_admin', 'last_message', 'unread_count']
+
+    def get_name(self, obj):
+        """Return full name or username."""
+        if obj.first_name and obj.last_name:
+            return f"{obj.first_name} {obj.last_name}".strip()
+        return obj.username
 
     def get_last_message(self, obj):
         request = self.context.get('request')

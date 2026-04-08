@@ -393,6 +393,16 @@ class ApiService {
     return data['unread_count'] ?? 0;
   }
 
+  Future<void> markMessagesAsRead(String token, int senderId) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/messages/mark-read/$senderId/'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to mark messages as read: ${response.body}');
+    }
+  }
+
   // ==================== Posts ====================
 
   Future<List<PostModel>> fetchPosts(String token) async {

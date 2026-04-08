@@ -190,9 +190,17 @@ class _PostCardState extends ConsumerState<PostCard> {
                       style: TextStyle(color: categoryColor, fontWeight: FontWeight.bold),
                     ),
             ),
-            title: Text(
-              currentPost.authorName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            title: Row(
+              children: [
+                Text(
+                  'Posted by: ',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  currentPost.authorName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,7 +214,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                   children: [
                     _badge(currentPost.postType.toUpperCase(), Colors.blue.shade700),
                     const SizedBox(width: 8),
-                    _badge(currentPost.incidentType.toUpperCase(), categoryColor),
+                    _badge(currentPost.category.toUpperCase(), categoryColor),
                     const SizedBox(width: 8),
                     _badge(currentPost.status.toUpperCase(), statusColor),
                   ],
