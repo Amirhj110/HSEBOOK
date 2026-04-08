@@ -217,6 +217,7 @@ class PostSerializer(serializers.ModelSerializer):
     author_assigned_area = serializers.SerializerMethodField()
     project_name = serializers.CharField(source='project.name', read_only=True)
     images = PostImageSerializer(read_only=True, many=True)
+    images_urls = serializers.SerializerMethodField()
     category = serializers.CharField(required=False, default='Unsafe Act')
     severity = serializers.CharField(required=False, default='Low')
     location = serializers.CharField(required=False, allow_blank=True, default='')
@@ -234,9 +235,21 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'author_name', 'author_profile_picture', 'author_role', 'author_assigned_area',
                   'observation', 'description', 'rectification',
                   'category', 'severity', 'location', 'assigned_area', 'status',
-                  'project', 'project_name', 'images',
+                  'project', 'project_name', 'images', 'images_urls',
                   'comments_count', 'recent_comments', 'created_at']
         read_only_fields = ['id', 'created_at', 'author', 'project']
+
+    def get_images_urls(self, obj):
+        """Return list of image URLs for the post."""
+        request = self.context.get('request')
+        urls = []
+        for img in obj.images.all():
+            if img.image:
+                if request:
+                    urls.append(request.build_absolute_uri(img.image.url))
+                else:
+                    urls.append(img.image.url)
+        return urls
 
     def get_author_name(self, obj):
         """Return author's full name or username."""
