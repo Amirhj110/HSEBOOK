@@ -33,7 +33,7 @@ def generate_incident_report_excel(posts, project_name, month=None):
     ws['A3'] = f'Period: {month or "All Time"}'
     
     # Headers
-    headers = ['ID', 'Date', 'Author', 'Content', 'Status', 'Project', 'Risk Level']
+    headers = ['ID', 'Date', 'Author', 'Observation', 'Description', 'Rectification', 'Status', 'Project', 'Risk Level']
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=5, column=col, value=header)
         cell.font = header_font
@@ -45,13 +45,15 @@ def generate_incident_report_excel(posts, project_name, month=None):
         ws.cell(row=row_idx, column=1, value=post.id)
         ws.cell(row=row_idx, column=2, value=post.created_at.strftime('%Y-%m-%d') if post.created_at else 'N/A')
         ws.cell(row=row_idx, column=3, value=post.author.username if post.author else 'Unknown')
-        ws.cell(row=row_idx, column=4, value=post.content[:100] if len(post.content) > 100 else post.content)
-        ws.cell(row=row_idx, column=5, value=post.status)
-        ws.cell(row=row_idx, column=6, value=post.project.name if post.project else 'N/A')
+        ws.cell(row=row_idx, column=4, value=post.observation[:100] if len(post.observation) > 100 else post.observation)
+        ws.cell(row=row_idx, column=5, value=post.description[:100] if len(post.description) > 100 else post.description)
+        ws.cell(row=row_idx, column=6, value=post.rectification[:100] if len(post.rectification) > 100 else post.rectification)
+        ws.cell(row=row_idx, column=7, value=post.status)
+        ws.cell(row=row_idx, column=8, value=post.project.name if post.project else 'N/A')
         
         # Simple risk assessment
         risk = 'HIGH' if post.status == 'Pending' else 'LOW'
-        ws.cell(row=row_idx, column=7, value=risk)
+        ws.cell(row=row_idx, column=9, value=risk)
     
     # Auto-width
     for column in ws.columns:
@@ -118,7 +120,7 @@ def generate_incident_report_pdf(posts, project_name, month=None):
             str(post.id),
             (post.created_at.strftime('%m/%d') if post.created_at else 'N/A'),
             (post.author.username[:15] if post.author else 'Unknown'),
-            (post.content[:40] + '...' if len(post.content) > 40 else post.content),
+            (post.observation[:40] + '...' if len(post.observation) > 40 else post.observation),
             post.status
         ])
     
@@ -152,7 +154,9 @@ def generate_risk_trend_ai(posts, project_name, api_key=None):
         observations = []
         for post in posts[:20]:
             observations.append({
-                'content': post.content,
+                'observation': post.observation,
+                'description': post.description,
+                'rectification': post.rectification,
                 'status': post.status,
                 'date': post.created_at.strftime('%Y-%m-%d') if post.created_at else 'Unknown',
                 'author': post.author.username if post.author else 'Anonymous'
