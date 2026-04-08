@@ -704,7 +704,11 @@ class MessageCreateView(generics.CreateAPIView):
 
 
 class ConversationListView(APIView):
-    """Get list of conversations for the current user."""
+    """Get list of conversations for the current user (WhatsApp style).
+    
+    Returns only users who have sent messages to the current user,
+    sorted by most recent message.
+    """
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
@@ -713,8 +717,27 @@ class ConversationListView(APIView):
         if not project:
             return Response({'error': 'No project associated'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Get all other users in the project
-        other_users = User.objects.filter(profile__project=project).exclude(id=user.id)
+        # Get all users who have sent messages to the current user (WhatsApp style)
+        # This includes both senders (who messaged me) and recipients (who I messaged)
+        sender_ids = Message.objects.filter(
+            recipient=user,
+            sender__profile__project=project
+        ).values_list('sender', flat=True).distinct()
+        
+        recipient_ids = Message.objects.filter(
+            sender=user,
+            recipient__profile__project=project
+        ).values_list('recipient', flat=True).distinct()
+        
+        # Combine unique user IDs who have had conversations with current user
+        conversation_user_ids = set(list(sender_ids) + list(recipient_ids))
+        
+        # Get user objects ordered by most recent message
+        other_users = User.objects.filter(
+            id__in=conversation_user_ids
+        ).exclude(id=user.id).distinct()
+        
+        # Annotate with last message time for ordering
         serializer = ConversationSerializer(other_users, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -737,6 +760,34 @@ class UnreadMessageCountView(APIView):
         ).count()
         
         return Response({'unread_count': unread_count})
+
+
+class MessageMarkAsReadView(APIView):
+    """Mark all messages from a specific sender as read."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def patch(self, request, sender_id=None):
+        user = get_authenticated_user(request)
+        
+        if not sender_id:
+            return Response({'error': 'sender_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            sender = User.objects.get(id=sender_id)
+        except User.DoesNotExist:
+            return Response({'error': 'Sender not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Mark all unread messages from this sender to current user as read
+        updated_count = Message.objects.filter(
+            sender=sender,
+            recipient=user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return Response({
+            'message': f'Marked {updated_count} messages as read',
+            'updated_count': updated_count
+        })
 
 
 # ==================== Safety Intelligence Views ====================

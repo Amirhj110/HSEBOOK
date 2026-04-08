@@ -220,16 +220,21 @@ class PostSerializer(serializers.ModelSerializer):
         required=False,
         default='Pending'
     )
+    # Computed fields extracted from content
+    observation = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    rectification = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     recent_comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = ['id', 'author', 'author_profile_picture', 'author_role', 'author_assigned_area',
-                  'content', 'category', 'severity', 'location', 'assigned_area', 'status',
+                  'content', 'observation', 'description', 'rectification',
+                  'category', 'severity', 'location', 'assigned_area', 'status',
                   'project', 'project_name', 'images',
                   'comments_count', 'recent_comments', 'created_at']
-        read_only_fields = ['id', 'created_at', 'author', 'project']
+        read_only_fields = ['id', 'created_at', 'author', 'project', 'observation', 'description', 'rectification']
 
     def get_author_profile_picture(self, obj):
         try:
@@ -252,6 +257,32 @@ class PostSerializer(serializers.ModelSerializer):
     def get_recent_comments(self, obj):
         recent = obj.comments.order_by('-created_at')[:2]
         return CommentSerializer(recent, many=True, context=self.context).data
+
+    def get_observation(self, obj):
+        """Extract observation from content field."""
+        content = obj.content or ''
+        # Look for pattern: observation text before "\n\nDescription:"
+        if '\n\nDescription:' in content:
+            return content.split('\n\nDescription:')[0].strip()
+        return content.strip()
+
+    def get_description(self, obj):
+        """Extract description from content field."""
+        content = obj.content or ''
+        if '\n\nDescription:' in content and '\n\nRectification:' in content:
+            start = content.find('\n\nDescription:') + len('\n\nDescription:')
+            end = content.find('\n\nRectification:')
+            return content[start:end].strip()
+        elif '\n\nDescription:' in content:
+            return content.split('\n\nDescription:')[1].strip()
+        return ''
+
+    def get_rectification(self, obj):
+        """Extract rectification from content field."""
+        content = obj.content or ''
+        if '\n\nRectification:' in content:
+            return content.split('\n\nRectification:')[1].strip()
+        return ''
 
     def validate_status(self, value):
         """Normalize status value to handle edge cases from frontend."""

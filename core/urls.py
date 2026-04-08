@@ -10,6 +10,7 @@ from .views import (
     LoginView,
     MessageCreateView,
     MessageListView,
+    MessageMarkAsReadView,
     PostDeleteView,
     PostListCreateView,
     PostStatusUpdateView,
@@ -59,6 +60,7 @@ urlpatterns = [
     path('messages/send/', MessageCreateView.as_view(), name='messages-send'),
     path('messages/conversations/', ConversationListView.as_view(), name='messages-conversations'),
     path('messages/unread-count/', UnreadMessageCountView.as_view(), name='messages-unread-count'),
+    path('messages/mark-read/<int:sender_id>/', MessageMarkAsReadView.as_view(), name='messages-mark-read'),
     
     # Projects
     path('projects/create/', ProjectCreateView.as_view(), name='project-create'),
