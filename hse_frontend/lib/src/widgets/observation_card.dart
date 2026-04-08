@@ -194,11 +194,11 @@ class ObservationCard extends StatelessWidget {
               ],
             ),
           ),
-          // Description
+          // Observation
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Text(
-              observation.content,
+              observation.observation,
               style: const TextStyle(fontSize: 15, height: 1.4),
             ),
           ),

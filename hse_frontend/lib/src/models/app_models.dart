@@ -467,7 +467,7 @@ class PostModel {
       'created_at': createdAt.toIso8601String(),
       'post_type': postType,
       'incident_type': incidentType,
-      'observation_text': observationText,
+      'observation': observation,
       'description': description,
       'rectification': rectification,
     };
@@ -621,13 +621,13 @@ class PostModelAdapter extends TypeAdapter<PostModel> {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{ for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read() };
     return PostModel(
-      id: fields[0] as int, authorName: fields[1] as String, authorUsername: fields[2] as String? ?? '', authorRole: fields[3] as String? ?? '', authorAssignedArea: fields[4] as String? ?? '', content: fields[5] as String, status: fields[6] as String? ?? 'Pending', category: fields[7] as String? ?? 'Unsafe Act', severity: fields[8] as String? ?? 'Low', location: fields[9] as String? ?? '', assignedArea: fields[10] as String? ?? '', imageUrls: (fields[11] as List<dynamic>?)?.cast<String>() ?? [], recentComments: (fields[12] as List<dynamic>?)?.map((e) => Comment.fromJson(e as Map<String, dynamic>)).toList() ?? [], commentsCount: fields[13] as int? ?? 0, projectId: fields[14] as int, projectName: fields[15] as String, createdAt: DateTime.fromMillisecondsSinceEpoch(fields[16] as int), postType: fields[17] as String? ?? 'Observation', incidentType: fields[18] as String? ?? 'Near Miss', observationText: fields[19] as String? ?? '', description: fields[20] as String? ?? '', rectification: fields[21] as String? ?? '',
+      id: fields[0] as int, authorName: fields[1] as String, authorUsername: fields[2] as String? ?? '', authorRole: fields[3] as String? ?? '', authorAssignedArea: fields[4] as String? ?? '', observation: fields[5] as String? ?? '', status: fields[6] as String? ?? 'Pending', category: fields[7] as String? ?? 'Unsafe Act', severity: fields[8] as String? ?? 'Low', location: fields[9] as String? ?? '', assignedArea: fields[10] as String? ?? '', imageUrls: (fields[11] as List<dynamic>?)?.cast<String>() ?? [], recentComments: (fields[12] as List<dynamic>?)?.map((e) => Comment.fromJson(e as Map<String, dynamic>)).toList() ?? [], commentsCount: fields[13] as int? ?? 0, projectId: fields[14] as int, projectName: fields[15] as String, createdAt: DateTime.fromMillisecondsSinceEpoch(fields[16] as int), postType: fields[17] as String? ?? 'Observation', incidentType: fields[18] as String? ?? 'Near Miss', description: fields[19] as String? ?? '', rectification: fields[20] as String? ?? '',
     );
   }
   @override
   void write(BinaryWriter writer, PostModel obj) {
-    writer..writeByte(22)
-      ..writeByte(0)..write(obj.id)..writeByte(1)..write(obj.authorName)..writeByte(2)..write(obj.authorUsername)..writeByte(3)..write(obj.authorRole)..writeByte(4)..write(obj.authorAssignedArea)..writeByte(5)..write(obj.content)..writeByte(6)..write(obj.status)..writeByte(7)..write(obj.category)..writeByte(8)..write(obj.severity)..writeByte(9)..write(obj.location)..writeByte(10)..write(obj.assignedArea)..writeByte(11)..write(obj.imageUrls)..writeByte(12)..write(obj.recentComments)..writeByte(13)..write(obj.commentsCount)..writeByte(14)..write(obj.projectId)..writeByte(15)..write(obj.projectName)..writeByte(16)..write(obj.createdAt.millisecondsSinceEpoch)..writeByte(17)..write(obj.postType)..writeByte(18)..write(obj.incidentType)..writeByte(19)..write(obj.observationText)..writeByte(20)..write(obj.description)..writeByte(21)..write(obj.rectification);
+    writer..writeByte(21)
+      ..writeByte(0)..write(obj.id)..writeByte(1)..write(obj.authorName)..writeByte(2)..write(obj.authorUsername)..writeByte(3)..write(obj.authorRole)..writeByte(4)..write(obj.authorAssignedArea)..writeByte(5)..write(obj.observation)..writeByte(6)..write(obj.status)..writeByte(7)..write(obj.category)..writeByte(8)..write(obj.severity)..writeByte(9)..write(obj.location)..writeByte(10)..write(obj.assignedArea)..writeByte(11)..write(obj.imageUrls)..writeByte(12)..write(obj.recentComments)..writeByte(13)..write(obj.commentsCount)..writeByte(14)..write(obj.projectId)..writeByte(15)..write(obj.projectName)..writeByte(16)..write(obj.createdAt.millisecondsSinceEpoch)..writeByte(17)..write(obj.postType)..writeByte(18)..write(obj.incidentType)..writeByte(19)..write(obj.description)..writeByte(20)..write(obj.rectification);
   }
 }
 
