@@ -406,7 +406,7 @@ class MessageSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     """Summarized conversation for sidebar."""
     user_id = serializers.IntegerField(source='id')
-    username = serializers.CharField(source='username')
+    username = serializers.CharField()
     name = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
     unread_count = serializers.SerializerMethodField()
