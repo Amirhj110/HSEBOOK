@@ -129,10 +129,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile with explicit profile and project data."""
     profile = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_project_admin', 'project', 'profile']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_project_admin', 'project', 'profile', 'unread_count']
 
     def get_profile(self, obj):
         try:
@@ -170,6 +171,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         except (Profile.DoesNotExist, AttributeError):
             pass
         return None
+
+    def get_unread_count(self, obj):
+        """Count unread messages for the current user."""
+        return Message.objects.filter(recipient=obj, is_read=False).count()
 
 
 class CommentSerializer(serializers.ModelSerializer):
