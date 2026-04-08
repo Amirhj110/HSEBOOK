@@ -438,7 +438,7 @@ class ApiService {
     request.fields['severity'] = severity;
     request.fields['location'] = location;
     request.fields['category'] = incidentType; // For legacy support
-    request.fields['status'] = 'Open'; // Default to Open
+    request.fields['status'] = 'Pending'; // Default to Pending (matches backend model choices)
 
     if (imageBytes != null && imageBytes.isNotEmpty) {
       for (var i = 0; i < imageBytes.length; i++) {

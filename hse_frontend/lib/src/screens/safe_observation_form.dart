@@ -48,7 +48,7 @@ class _SafetyObservationFormState extends State<SafetyObservationForm> {
         'rectification': _rectificationController.text.trim(),
         'severity': _severity,
         'location': _location.trim(),
-        'status': 'Open',
+        'status': 'Pending', // Matches backend model choices (Pending/Complete)
         'imageBytes': _imageBytes,
         'imageNames': _selectedImages.map((f) => f.name).toList(),
       };

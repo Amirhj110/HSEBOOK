@@ -215,7 +215,11 @@ class PostSerializer(serializers.ModelSerializer):
     severity = serializers.CharField(required=False, default='Low')
     location = serializers.CharField(required=False, allow_blank=True, default='')
     assigned_area = serializers.CharField(required=False, allow_blank=True, default='')
-    status = serializers.CharField(required=False, default='Pending')
+    status = serializers.ChoiceField(
+        choices=['Pending', 'Complete'],
+        required=False,
+        default='Pending'
+    )
     comments_count = serializers.SerializerMethodField()
     recent_comments = serializers.SerializerMethodField()
 
@@ -248,6 +252,25 @@ class PostSerializer(serializers.ModelSerializer):
     def get_recent_comments(self, obj):
         recent = obj.comments.order_by('-created_at')[:2]
         return CommentSerializer(recent, many=True, context=self.context).data
+
+    def validate_status(self, value):
+        """Normalize status value to handle edge cases from frontend."""
+        if isinstance(value, str):
+            # Strip any accidental slashes or quotes
+            value = value.strip('/"\'\\')
+            # Capitalize first letter to match choices
+            value = value.capitalize()
+            # Map common variations
+            status_map = {
+                'open': 'Pending',
+                'pending': 'Pending',
+                'close': 'Complete',
+                'closed': 'Complete',
+                'complete': 'Complete',
+                'done': 'Complete',
+            }
+            value = status_map.get(value.lower(), value)
+        return value
 
 
 class ProjectMemberSerializer(serializers.ModelSerializer):
