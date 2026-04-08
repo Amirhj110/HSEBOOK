@@ -98326,7 +98326,7 @@ m=B.c.c6(i.z)
 l=i.Q
 k=A.Y(l).h("a3<1,k>")
 l=A.a2(new A.a3(l,new A.aB9(),k),k.h("ak.E"))
-j=A.a9(["postType",s,"incidentType",r,"observation",q,"description",p,"rectification",o,"severity",n,"location",m,"status","Open","imageBytes",i.as,"imageNames",l],t.N,t.K)
+j=A.a9(["postType",s,"incidentType",r,"observation",q,"description",p,"rectification",o,"severity",n,"location",m,"status","Pending","imageBytes",i.as,"imageNames",l],t.N,t.K)
 i.a.c.$1(j)}},
 H(a){var s,r,q,p,o=this,n=null,m="Observation",l=A.bL(a,n,t.w).w,k=t.p,j=A.c3(A.b([A.er(A.ce(n,n,B.o,n,n,new A.bR(B.dn,n,n,A.c0(2),n,n,B.S),n,4,n,n,n,n,40),n,n),B.eI,A.c9(A.b([A.dP(B.pQ,B.a4,n,28),B.cc,A.ay("Safety Professional Form",n,n,n,A.bN(n,n,B.a4,n,n,n,n,n,n,n,n,20,n,n,B.a1,n,n,!0,n,n,n,n,n,n,n,n),n,n)],k),B.r,B.n,B.t,0)],k),B.r,B.n,B.t),i=o.nq("Report Type",B.IY),h=A.c9(A.b([o.X2(m),B.cc,o.X2("Incident")],k),B.r,B.n,B.t,0),g=o.nq("Category",B.J0),f=t.s,e=t.bg
 e=A.a2(new A.a3(A.b(["Unsafe Act","Unsafe Condition","Safe Act"],f),new A.aBe(o),e),e.h("ak.E"))
@@ -98825,7 +98825,7 @@ o.n(0,"content",a8+"\n\nDescription: "+a3+"\n\nRectification: "+b1)
 o.n(0,"severity",b2)
 o.n(0,"location",a7)
 o.n(0,"category",a6)
-o.n(0,"status","Open")
+o.n(0,"status","Pending")
 if(a4!=null&&J.kK(a4))for(o=J.ap(a4),n=a1.y,m=t.zb,l=a5!=null,k=m.h("jH<1>"),j=t.G5,i=t.N,h=m.h("h6<1>"),g=0;g<o.gv(a4);++g){f=l&&g<J.cp(a5)?J.bq(a5,g):"image_"+g+".jpg"
 e=o.i(a4,g)
 d=new A.jE(null,null,null,null,m)
