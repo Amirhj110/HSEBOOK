@@ -403,13 +403,19 @@ class _MemberDetailsSheet extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatScreen(
-                        recipient: member!,
-                        currentUserId: currentUserId!,
-                        token: token!,
+                  showDialog(
+                    context: context,
+                    builder: (dialogContext) => Dialog(
+                      insetPadding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: MediaQuery.of(context).size.height * 0.7,
+                        child: ChatScreen(
+                          recipient: member!,
+                          currentUserId: currentUserId!,
+                          token: token!,
+                          showAppBar: false,
+                        ),
                       ),
                     ),
                   );

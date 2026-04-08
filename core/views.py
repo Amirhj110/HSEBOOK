@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.db import models
-from .models import Post, Profile, Project, ProjectSettings, User, Comment, Message, AreaAssignment
+from .models import Post, PostImage, Profile, Project, ProjectSettings, User, Comment, Message, AreaAssignment
 from .intelligence import (
     generate_incident_report_excel, 
     generate_incident_report_pdf,
