@@ -215,7 +215,9 @@ class PostNotifier extends StateNotifier<PostState> {
       authorRole: post.authorRole,
       authorProfilePicture: post.authorProfilePicture,
       authorAssignedArea: post.authorAssignedArea,
-      content: post.content,
+      observation: post.observation,
+      description: post.description,
+      rectification: post.rectification,
       status: post.status,
       category: post.category,
       severity: post.severity,
@@ -229,9 +231,6 @@ class PostNotifier extends StateNotifier<PostState> {
       createdAt: post.createdAt,
       postType: post.postType,
       incidentType: post.incidentType,
-      observationText: post.observationText,
-      description: post.description,
-      rectification: post.rectification,
     );
     state = state.copyWith(posts: updatedPosts);
   }

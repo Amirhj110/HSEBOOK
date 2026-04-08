@@ -225,9 +225,9 @@ class _PostCardState extends ConsumerState<PostCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (currentPost.observationText.isNotEmpty) ...[
+                if (currentPost.observation.isNotEmpty) ...[
                   Text(
-                    currentPost.observationText,
+                    currentPost.observation,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),

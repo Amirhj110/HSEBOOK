@@ -396,7 +396,9 @@ class PostModel {
   final String authorRole;
   final String? authorProfilePicture;
   final String authorAssignedArea;
-  final String content;
+  final String observation;
+  final String description;
+  final String rectification;
   final String status;
   final String category;
   final String severity;
@@ -410,9 +412,6 @@ class PostModel {
   final DateTime createdAt;
   final String postType;
   final String incidentType;
-  final String observationText;
-  final String description;
-  final String rectification;
 
   const PostModel({
     required this.id,
@@ -421,7 +420,9 @@ class PostModel {
     required this.authorRole,
     this.authorProfilePicture,
     required this.authorAssignedArea,
-    required this.content,
+    required this.observation,
+    required this.description,
+    required this.rectification,
     required this.status,
     required this.category,
     required this.severity,
@@ -435,9 +436,6 @@ class PostModel {
     required this.createdAt,
     required this.postType,
     required this.incidentType,
-    required this.observationText,
-    required this.description,
-    required this.rectification,
   });
 
   bool get isComplete =>
@@ -453,7 +451,9 @@ class PostModel {
       'author_role': authorRole,
       'author_profile_picture': authorProfilePicture,
       'author_assigned_area': authorAssignedArea,
-      'content': content,
+      'observation': observation,
+      'description': description,
+      'rectification': rectification,
       'status': status,
       'category': category,
       'severity': severity,
@@ -480,7 +480,9 @@ class PostModel {
     String? authorRole,
     String? authorProfilePicture,
     String? authorAssignedArea,
-    String? content,
+    String? observation,
+    String? description,
+    String? rectification,
     String? status,
     String? category,
     String? severity,
@@ -494,9 +496,6 @@ class PostModel {
     DateTime? createdAt,
     String? postType,
     String? incidentType,
-    String? observationText,
-    String? description,
-    String? rectification,
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -505,7 +504,9 @@ class PostModel {
       authorRole: authorRole ?? this.authorRole,
       authorProfilePicture: authorProfilePicture ?? this.authorProfilePicture,
       authorAssignedArea: authorAssignedArea ?? this.authorAssignedArea,
-      content: content ?? this.content,
+      observation: observation ?? this.observation,
+      description: description ?? this.description,
+      rectification: rectification ?? this.rectification,
       status: status ?? this.status,
       category: category ?? this.category,
       severity: severity ?? this.severity,
@@ -519,9 +520,6 @@ class PostModel {
       createdAt: createdAt ?? this.createdAt,
       postType: postType ?? this.postType,
       incidentType: incidentType ?? this.incidentType,
-      observationText: observationText ?? this.observationText,
-      description: description ?? this.description,
-      rectification: rectification ?? this.rectification,
     );
   }
 
@@ -533,7 +531,9 @@ class PostModel {
       authorRole: json['author_role'] as String? ?? 'OFFICER',
       authorProfilePicture: json['author_profile_picture'] as String?,
       authorAssignedArea: json['author_assigned_area'] as String? ?? '',
-      content: json['content'] as String? ?? '',
+      observation: json['observation'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      rectification: json['rectification'] as String? ?? '',
       status: json['status'] as String? ?? 'Pending',
       category: json['category'] as String? ?? 'Unsafe Act',
       severity: json['severity'] as String? ?? 'Low',
@@ -547,9 +547,6 @@ class PostModel {
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
       postType: json['post_type'] as String? ?? 'Observation',
       incidentType: json['incident_type'] as String? ?? 'Near Miss',
-      observationText: json['observation_text'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      rectification: json['rectification'] as String? ?? '',
     );
   }
 }
