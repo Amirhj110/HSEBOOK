@@ -211,11 +211,11 @@ class PostSerializer(serializers.ModelSerializer):
     author_assigned_area = serializers.SerializerMethodField()
     project_name = serializers.CharField(source='project.name', read_only=True)
     images = PostImageSerializer(read_only=True, many=True)
-    category = serializers.CharField()
-    severity = serializers.CharField()
+    category = serializers.CharField(required=False, default='Unsafe Act')
+    severity = serializers.CharField(required=False, default='Low')
     location = serializers.CharField(required=False, allow_blank=True, default='')
     assigned_area = serializers.CharField(required=False, allow_blank=True, default='')
-    images_upload = serializers.ListField(child=serializers.ImageField(), write_only=True, required=False)
+    status = serializers.CharField(required=False, default='Pending')
     comments_count = serializers.SerializerMethodField()
     recent_comments = serializers.SerializerMethodField()
 
@@ -223,9 +223,9 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['id', 'author', 'author_profile_picture', 'author_role', 'author_assigned_area',
                   'content', 'category', 'severity', 'location', 'assigned_area', 'status',
-                  'project', 'project_name', 'images', 'images_upload',
+                  'project', 'project_name', 'images',
                   'comments_count', 'recent_comments', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'author', 'project']
 
     def get_author_profile_picture(self, obj):
         try:
@@ -248,13 +248,6 @@ class PostSerializer(serializers.ModelSerializer):
     def get_recent_comments(self, obj):
         recent = obj.comments.order_by('-created_at')[:2]
         return CommentSerializer(recent, many=True, context=self.context).data
-
-    def create(self, validated_data):
-        images = validated_data.pop('images_upload', [])
-        post = super().create(validated_data)
-        for image in images:
-            PostImage.objects.create(post=post, image=image)
-        return post
 
 
 class ProjectMemberSerializer(serializers.ModelSerializer):

@@ -209,7 +209,12 @@ class PostListCreateView(generics.ListCreateAPIView):
         try:
             profile = user.profile
             if profile.project:
-                serializer.save(author=user, project=profile.project)
+                post = serializer.save(author=user, project=profile.project)
+                # Handle image uploads from request.FILES
+                if 'images' in self.request.FILES:
+                    images = self.request.FILES.getlist('images')
+                    for image in images:
+                        PostImage.objects.create(post=post, image=image)
             else:
                 raise serializers.ValidationError("User is not associated with any project.")
         except Profile.DoesNotExist:
