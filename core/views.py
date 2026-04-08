@@ -435,6 +435,38 @@ class UserRoleChangeView(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class UserDeleteView(APIView):
+    """Delete a user. Admin can delete anyone. Manager can delete anyone except Admin."""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def delete(self, request, user_id):
+        user = get_authenticated_user(request)
+        
+        try:
+            target_user = User.objects.get(id=user_id)
+            
+            # Check same project
+            if target_user.profile.project != user.profile.project:
+                return Response({'error': 'User is not in your project'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Admin can delete anyone (including other admins)
+            if user.is_project_admin or user.role == User.Role.ADMIN:
+                target_user.delete()
+                return Response({'message': 'User deleted successfully'})
+            
+            # Manager can delete anyone except Admin
+            if user.role == User.Role.MANAGER:
+                if target_user.is_project_admin or target_user.role == User.Role.ADMIN:
+                    return Response({'error': 'Managers cannot delete admin users'}, status=status.HTTP_403_FORBIDDEN)
+                target_user.delete()
+                return Response({'message': 'User deleted successfully'})
+            
+            return Response({'error': 'You do not have permission to delete users'}, status=status.HTTP_403_FORBIDDEN)
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 # ==================== Post Moderation Views ====================
 
 class PostStatusUpdateView(APIView):
@@ -481,18 +513,24 @@ class PostDeleteView(APIView):
         try:
             post = Post.objects.get(id=post_id)
             
-            # Check permissions: Admin/Manager can delete any post, others only their own
-            can_delete = (
-                user.is_project_admin or
-                user.role in [User.Role.ADMIN, User.Role.MANAGER] or
-                post.author == user
-            )
+            # Admin can delete any post
+            if user.is_project_admin or user.role == User.Role.ADMIN:
+                post.delete()
+                return Response({'message': 'Post deleted successfully'})
             
-            if not can_delete:
-                return Response({'error': 'You do not have permission to delete this post'}, status=status.HTTP_403_FORBIDDEN)
+            # Manager can delete posts except those by staff/superuser
+            if user.role == User.Role.MANAGER:
+                if post.author.is_staff or post.author.is_superuser:
+                    return Response({'error': 'Managers cannot delete posts by admin/staff users'}, status=status.HTTP_403_FORBIDDEN)
+                post.delete()
+                return Response({'message': 'Post deleted successfully'})
             
-            post.delete()
-            return Response({'message': 'Post deleted successfully'})
+            # Users can only delete their own posts
+            if post.author == user:
+                post.delete()
+                return Response({'message': 'Post deleted successfully'})
+            
+            return Response({'error': 'You do not have permission to delete this post'}, status=status.HTTP_403_FORBIDDEN)
             
         except Post.DoesNotExist:
             return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)

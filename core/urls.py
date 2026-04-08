@@ -25,6 +25,7 @@ from .views import (
     SocialAuthCallbackView,
     StaffRegistrationView,
     UnreadMessageCountView,
+    UserDeleteView,
     UserManagementView,
     UserProfileUpdateView,
     UserProfileView,
@@ -46,6 +47,7 @@ urlpatterns = [
     
     # Admin User Management
     path('admin/users/', UserManagementView.as_view(), name='admin-users'),
+    path('admin/users/<int:user_id>/delete/', UserDeleteView.as_view(), name='admin-user-delete'),
     path('admin/change-role/', UserRoleChangeView.as_view(), name='admin-change-role'),
     
     # Posts
