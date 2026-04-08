@@ -744,8 +744,8 @@ class MessageCreateView(generics.CreateAPIView):
 class ConversationListView(APIView):
     """Get list of conversations for the current user (WhatsApp style).
     
-    Returns only users who have sent messages to the current user,
-    sorted by most recent message.
+    Returns all unique users who have either sent a message to the current user
+    OR received one from them (bidirectional conversation list).
     """
     permission_classes = [permissions.IsAuthenticated]
     
@@ -755,27 +755,32 @@ class ConversationListView(APIView):
         if not project:
             return Response({'error': 'No project associated'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Get all users who have sent messages to the current user (WhatsApp style)
-        # This includes both senders (who messaged me) and recipients (who I messaged)
-        sender_ids = Message.objects.filter(
+        # Get all users who have sent messages TO the current user
+        # (messages where current user is the recipient)
+        sender_ids = list(Message.objects.filter(
             recipient=user,
             sender__profile__project=project
-        ).values_list('sender', flat=True).distinct()
+        ).values_list('sender', flat=True).distinct())
         
-        recipient_ids = Message.objects.filter(
+        # Get all users who have received messages FROM the current user
+        # (messages where current user is the sender)
+        recipient_ids = list(Message.objects.filter(
             sender=user,
             recipient__profile__project=project
-        ).values_list('recipient', flat=True).distinct()
+        ).values_list('recipient', flat=True).distinct())
         
         # Combine unique user IDs who have had conversations with current user
-        conversation_user_ids = set(list(sender_ids) + list(recipient_ids))
+        conversation_user_ids = set(sender_ids + recipient_ids)
+        
+        if not conversation_user_ids:
+            return Response([])
         
         # Get user objects ordered by most recent message
         other_users = User.objects.filter(
             id__in=conversation_user_ids
         ).exclude(id=user.id).distinct()
         
-        # Annotate with last message time for ordering
+        # Serialize with conversation data
         serializer = ConversationSerializer(other_users, many=True, context={'request': request})
         return Response(serializer.data)
 
