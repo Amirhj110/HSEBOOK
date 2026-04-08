@@ -436,28 +436,32 @@ class UserRoleChangeView(APIView):
 
 
 class UserDeleteView(APIView):
-    """Delete a user. Admin can delete anyone. Manager can delete anyone except Admin."""
+    """Delete a user. Admin can delete anyone. Manager can delete anyone except Admin/Staff."""
     permission_classes = [permissions.IsAuthenticated]
     
-    def delete(self, request, user_id):
+    def delete(self, request, pk):
         user = get_authenticated_user(request)
         
         try:
-            target_user = User.objects.get(id=user_id)
+            target_user = User.objects.get(id=pk)
             
             # Check same project
             if target_user.profile.project != user.profile.project:
                 return Response({'error': 'User is not in your project'}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Admin can delete anyone (including other admins)
+            # Admin can delete anyone (including other admins and staff)
             if user.is_project_admin or user.role == User.Role.ADMIN:
                 target_user.delete()
                 return Response({'message': 'User deleted successfully'})
             
-            # Manager can delete anyone except Admin
+            # Manager can delete anyone except Admin/Staff/Superuser
             if user.role == User.Role.MANAGER:
                 if target_user.is_project_admin or target_user.role == User.Role.ADMIN:
                     return Response({'error': 'Managers cannot delete admin users'}, status=status.HTTP_403_FORBIDDEN)
+                if target_user.is_staff:
+                    return Response({'error': 'Managers cannot delete staff users'}, status=status.HTTP_403_FORBIDDEN)
+                if target_user.is_superuser:
+                    return Response({'error': 'Managers cannot delete superuser accounts'}, status=status.HTTP_403_FORBIDDEN)
                 target_user.delete()
                 return Response({'message': 'User deleted successfully'})
             
